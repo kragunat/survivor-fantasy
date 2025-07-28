@@ -12,6 +12,7 @@ function CreateLeagueContent() {
   const [name, setName] = useState('')
   const [maxPlayers, setMaxPlayers] = useState(100)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
   if (status === 'loading') {
     return (
@@ -26,9 +27,17 @@ function CreateLeagueContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!session?.user?.id) return
+    console.log('Session:', session)
+    console.log('User ID:', session?.user?.id)
+    
+    if (!session?.user?.id) {
+      setError('You must be logged in to create a league')
+      return
+    }
 
     setIsLoading(true)
+    setError('')
+    
     try {
       const response = await fetch('/api/leagues', {
         method: 'POST',
@@ -39,9 +48,13 @@ function CreateLeagueContent() {
       if (response.ok) {
         const league = await response.json()
         router.push(`/leagues/${league.id}`)
+      } else {
+        const errorData = await response.json()
+        setError(errorData.error || 'Failed to create league')
       }
     } catch (error) {
       console.error('Error creating league:', error)
+      setError('Network error occurred')
     } finally {
       setIsLoading(false)
     }
@@ -67,6 +80,12 @@ function CreateLeagueContent() {
           <h1 className="text-3xl font-bold text-primary-900 mb-6 text-center">
             Create New League
           </h1>
+
+          {error && (
+            <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded mb-4">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
