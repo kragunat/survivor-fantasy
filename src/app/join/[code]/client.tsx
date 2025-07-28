@@ -40,7 +40,9 @@ function JoinLeagueClientImpl({ code }: { code: string }) {
       }
     }
 
-    fetchInvitation()
+    if (code) {
+      fetchInvitation()
+    }
   }, [code])
 
   const handleJoin = async () => {

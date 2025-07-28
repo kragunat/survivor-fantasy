@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ code: string }> }
 ) {
-  const { code } = await params
-  const supabase = await createClient()
-  
   try {
+    const { code } = await params
+    
+    if (!code) {
+      return NextResponse.json({ error: 'Missing invitation code' }, { status: 400 })
+    }
+
+    const supabase = createAdminClient()
+    
     const { data: invitation, error } = await supabase
       .from('invitations')
       .select(`
@@ -19,7 +24,15 @@ export async function GET(
       .gt('expires_at', new Date().toISOString())
       .single()
 
-    if (error || !invitation) {
+    if (error) {
+      console.error('Supabase error:', error)
+      if (error.code === 'PGRST116') {
+        return NextResponse.json({ error: 'Invalid or expired invitation' }, { status: 404 })
+      }
+      return NextResponse.json({ error: 'Database error' }, { status: 500 })
+    }
+
+    if (!invitation) {
       return NextResponse.json({ error: 'Invalid or expired invitation' }, { status: 404 })
     }
 
