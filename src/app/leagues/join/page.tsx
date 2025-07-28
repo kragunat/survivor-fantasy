@@ -6,25 +6,11 @@ import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 
 function JoinLeagueContent() {
-  const sessionData = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
   const [inviteCode, setInviteCode] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-
-  // Handle case where useSession returns undefined
-  if (!sessionData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p>Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
-  const { data: session, status } = sessionData
 
   if (status === 'loading') {
     return (
