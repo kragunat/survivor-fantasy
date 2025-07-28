@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 
-export default function CreateLeague() {
+function CreateLeagueContent() {
   const { data: session } = useSession()
   const router = useRouter()
   const [name, setName] = useState('')
@@ -104,5 +104,13 @@ export default function CreateLeague() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function CreateLeague() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <CreateLeagueContent />
+    </Suspense>
   )
 }
