@@ -95,25 +95,45 @@ function LeagueOverviewContent({ leagueId }: { leagueId: string }) {
   }, [leagueId, status])
 
   const handleGenerateInvite = async () => {
-    if (!league) return
+    if (!league) {
+      console.error('No league data available')
+      return
+    }
     
+    console.log('Starting invite generation for league:', league.id)
     setGeneratingInvite(true)
+    
     try {
-      const response = await fetch(`/api/leagues/${league.id}/invite`, {
+      const url = `/api/leagues/${league.id}/invite`
+      console.log('Making request to URL:', url)
+      
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'general-invite' }),
       })
 
+      console.log('Response status:', response.status)
+      console.log('Response ok:', response.ok)
+      
       if (response.ok) {
         const data = await response.json()
+        console.log('Success response:', data)
         setInviteLink(data.inviteUrl)
         setShowInvite(true)
       } else {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-        setError(errorData.error || 'Failed to generate invite')
+        console.log('Error response status:', response.status)
+        try {
+          const errorData = await response.json()
+          console.log('Error response data:', errorData)
+          setError(errorData.error || 'Failed to generate invite')
+        } catch (parseError) {
+          console.log('Could not parse error response:', parseError)
+          setError(`HTTP ${response.status}: ${response.statusText}`)
+        }
       }
     } catch (err) {
+      console.error('Network error:', err)
       setError('Network error occurred')
     } finally {
       setGeneratingInvite(false)
