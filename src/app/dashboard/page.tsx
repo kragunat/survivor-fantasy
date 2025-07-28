@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 
 export default async function Dashboard() {
   const session = await getServerSession(authOptions)
@@ -35,17 +36,23 @@ export default async function Dashboard() {
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Create a New League</h3>
               <p className="text-gray-600 mb-4">Start your own survivor league and invite friends to join.</p>
-              <button className="bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700 transition">
+              <Link 
+                href="/leagues/create"
+                className="bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700 transition inline-block"
+              >
                 Create League
-              </button>
+              </Link>
             </div>
             
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Join a League</h3>
               <p className="text-gray-600 mb-4">Enter an invitation code to join an existing league.</p>
-              <button className="bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700 transition">
+              <Link 
+                href="/leagues/join"
+                className="bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700 transition inline-block"
+              >
                 Join League
-              </button>
+              </Link>
             </div>
           </div>
           
