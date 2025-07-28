@@ -126,12 +126,22 @@ if (!session?.user?.id) {
 - Client component wrappers for server-side compatibility
 
 ### Session Management ✅
-- **Defensive useSession pattern**: Added null checks to prevent destructuring errors
+- **Triple-defensive useSession pattern**: Multiple layers of protection against destructuring errors
 ```typescript
 // Pattern used across all components
-const sessionResult = useSession()
-const { data: session, status } = sessionResult || { data: null, status: 'loading' }
+export default function ComponentName() {
+  // Client-side safety check
+  if (typeof window === 'undefined') {
+    return <div>Loading...</div>
+  }
+
+  const sessionResult = useSession()
+  const { data: session, status } = sessionResult || { data: null, status: 'loading' }
+  // ... component logic
+}
 ```
+- **Client-side safety checks**: `typeof window === 'undefined'` prevents server-side execution
+- **Defensive destructuring**: Null coalescing prevents undefined destructuring  
 - **Hydration safety**: Prevents "Cannot destructure property" errors during SSR/CSR transitions
 - **Server/Client separation**: Proper separation of async server components and client components using hooks
 - **Admin client usage**: API routes use `createAdminClient()` to bypass RLS for invite operations
