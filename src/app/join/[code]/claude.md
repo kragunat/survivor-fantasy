@@ -13,11 +13,24 @@ This directory demonstrates the proper pattern for handling Next.js 15 async par
 export default async function JoinLeague({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params
   
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <JoinLeagueClient code={code} />
-    </Suspense>
-  )
+  return <JoinLeagueWrapper code={code} />
+}
+```
+
+### Client Wrapper Component (`wrapper.tsx`) ✅
+- Client component that handles dynamic imports
+- Uses `ssr: false` to prevent server-side rendering of hooks
+- Provides loading states during component hydration
+
+```typescript
+'use client'
+const JoinLeagueClient = dynamic(() => import('./client'), {
+  ssr: false,
+  loading: () => <div>Loading...</div>
+})
+
+export default function JoinLeagueWrapper({ code }: { code: string }) {
+  return <JoinLeagueClient code={code} />
 }
 ```
 
@@ -43,9 +56,10 @@ TypeError: Cannot destructure property 'data' of '(0 , f.useSession)(...)' as it
 - Incorrect component boundary between server and client code
 
 ### Solution Applied
-1. **Clean separation**: Server component handles params, client component handles hooks
-2. **Defensive destructuring**: Added null checks for `useSession()` result
-3. **Proper boundaries**: Clear separation between server-side and client-side logic
+1. **Three-layer architecture**: Server component → Client wrapper → Client implementation
+2. **Dynamic imports with SSR disabled**: Prevents server-side execution of hooks
+3. **Defensive destructuring**: Added null checks for `useSession()` result
+4. **Proper boundaries**: Clear separation between server-side and client-side logic
 
 ## Features Implemented ✅
 

@@ -34,13 +34,6 @@ export default function JoinLeagueClient({ code }: { code: string }) {
     fetchInvitation()
   }, [code])
 
-  useEffect(() => {
-    // If user is logged in and invitation is valid, auto-join
-    if (session?.user && invitation && !joining) {
-      handleJoin()
-    }
-  }, [session?.user?.id, invitation?.id, joining])
-
   const handleJoin = async () => {
     if (!session?.user) return
 
@@ -63,6 +56,13 @@ export default function JoinLeagueClient({ code }: { code: string }) {
       setJoining(false)
     }
   }
+
+  useEffect(() => {
+    // If user is logged in and invitation is valid, auto-join
+    if (session?.user && invitation && !joining) {
+      handleJoin()
+    }
+  }, [session?.user?.id, invitation?.id, joining])
 
   if (loading) {
     return (
