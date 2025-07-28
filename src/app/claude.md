@@ -25,7 +25,8 @@ This directory contains all Next.js App Router pages and API routes for the Surv
 - **leagues/[id]/layout.tsx** - Dynamic layout
 
 ### Invitation System ✅
-- **join/[code]/page.tsx** - Handle invite link clicks with automatic auth flow
+- **join/[code]/page.tsx** - Server component that handles async params and renders client component
+- **join/[code]/client.tsx** - Client component with useSession hook and invitation logic
 
 ### API Routes ✅
 - **api/auth/[...nextauth]/route.ts** - NextAuth.js authentication endpoints
@@ -132,6 +133,7 @@ const sessionResult = useSession()
 const { data: session, status } = sessionResult || { data: null, status: 'loading' }
 ```
 - **Hydration safety**: Prevents "Cannot destructure property" errors during SSR/CSR transitions
+- **Server/Client separation**: Proper separation of async server components and client components using hooks
 - **Admin client usage**: API routes use `createAdminClient()` to bypass RLS for invite operations
 
 ### Type Safety
