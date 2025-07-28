@@ -60,7 +60,7 @@ function DashboardContent() {
     }
 
     fetchLeagues()
-  }, [session, router])
+  }, [session])
 
   if (!session) {
     return null
