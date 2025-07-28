@@ -103,14 +103,19 @@ if (!session?.user?.id) {
 ### League Overview ✅
 - Member list with join dates and elimination status
 - User's personal picks history
-- Commissioner controls (invite button)
+- Commissioner controls with functional "Invite Players" button
 - League statistics and information
+- Invitation link generation with copy functionality
+- Real-time invite link display with expiration notice
 
 ### Invitation System ✅
-- Unique codes with 7-day expiration
+- Unique codes with 7-day expiration using nanoid(12)
+- Generic invite links without requiring specific emails
 - Automatic league joining for authenticated users
-- Seamless auth flow for new users
-- Email-based invitation tracking
+- Seamless auth flow for new users via join/[code] pages
+- Commissioner-only invite generation with proper authorization
+- Copy-to-clipboard functionality with success feedback
+- Real-time invite link display in expandable UI section
 
 ## Technical Considerations
 

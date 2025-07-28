@@ -102,7 +102,7 @@ function LeagueOverviewContent({ leagueId }: { leagueId: string }) {
       const response = await fetch(`/api/leagues/${league.id}/invite`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'general-invite' }), // Generic invite
+        body: JSON.stringify({ email: 'general-invite' }),
       })
 
       if (response.ok) {
@@ -110,7 +110,7 @@ function LeagueOverviewContent({ leagueId }: { leagueId: string }) {
         setInviteLink(data.inviteUrl)
         setShowInvite(true)
       } else {
-        const errorData = await response.json()
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         setError(errorData.error || 'Failed to generate invite')
       }
     } catch (err) {
