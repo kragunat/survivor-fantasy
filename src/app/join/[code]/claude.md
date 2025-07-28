@@ -4,33 +4,29 @@ This directory demonstrates the proper pattern for handling Next.js 15 async par
 
 ## Architecture ✅
 
-### Server Component (`page.tsx`) ✅
-- Handles async `params` resolution from Next.js 15
-- No client-side hooks or state
-- Clean separation of server-side logic
-
-```typescript
-export default async function JoinLeague({ params }: { params: Promise<{ code: string }> }) {
-  const { code } = await params
-  
-  return <JoinLeagueWrapper code={code} />
-}
-```
-
-### Client Wrapper Component (`wrapper.tsx`) ✅
-- Client component that handles dynamic imports
-- Uses `ssr: false` to prevent server-side rendering of hooks
-- Provides loading states during component hydration
+### Client-Only Page Component (`page.tsx`) ✅
+- Marked with `'use client'` directive - completely client-side
+- Uses `useParams()` hook to get route parameters
+- No server-side component or async params
+- Eliminates any possibility of server-side hook execution
 
 ```typescript
 'use client'
-const JoinLeagueClient = dynamic(() => import('./client'), {
-  ssr: false,
-  loading: () => <div>Loading...</div>
-})
+import { useParams } from 'next/navigation'
 
-export default function JoinLeagueWrapper({ code }: { code: string }) {
+function JoinLeagueContent() {
+  const params = useParams()
+  const code = params.code as string
+  
   return <JoinLeagueClient code={code} />
+}
+
+export default function JoinLeague() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <JoinLeagueContent />
+    </Suspense>
+  )
 }
 ```
 
@@ -56,10 +52,10 @@ TypeError: Cannot destructure property 'data' of '(0 , f.useSession)(...)' as it
 - Incorrect component boundary between server and client code
 
 ### Solution Applied
-1. **Three-layer architecture**: Server component → Client wrapper → Client implementation
-2. **Dynamic imports with SSR disabled**: Prevents server-side execution of hooks
+1. **Complete client-side architecture**: All components marked with `'use client'`
+2. **useParams() instead of async params**: Eliminates server-side parameter handling
 3. **Defensive destructuring**: Added null checks for `useSession()` result
-4. **Proper boundaries**: Clear separation between server-side and client-side logic
+4. **Zero server-side execution**: No possibility of server-side hook rendering
 
 ## Features Implemented ✅
 
@@ -100,17 +96,18 @@ const { data: session, status } = sessionResult || { data: null, status: 'loadin
 
 ## Next.js 15 Compatibility ✅
 
-### Async Params Pattern
-Properly handles the new Next.js 15 async params requirement:
+### Client-Side Params Pattern
+Uses client-side hooks instead of async server params:
 ```typescript
-// Server component
-const { code } = await params
+// Client component
+const params = useParams()
+const code = params.code as string
 
 // Pass to client component
 <JoinLeagueClient code={code} />
 ```
 
 ### Build Optimization
-- Server component: Minimal bundle size
-- Client component: Contains interactive functionality
-- Proper code splitting between server and client
+- Complete client-side rendering: No server/client split
+- Single bundle: All components grouped together
+- Simplified architecture: No complex component boundaries

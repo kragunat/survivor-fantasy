@@ -25,7 +25,7 @@ This directory contains all Next.js App Router pages and API routes for the Surv
 - **leagues/[id]/layout.tsx** - Dynamic layout
 
 ### Invitation System ✅
-- **join/[code]/page.tsx** - Server component that handles async params and renders client component
+- **join/[code]/page.tsx** - Client-only component using useParams() hook
 - **join/[code]/client.tsx** - Client component with useSession hook and invitation logic
 
 ### API Routes ✅
