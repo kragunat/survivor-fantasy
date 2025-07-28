@@ -23,11 +23,15 @@ interface UserLeague {
 }
 
 function DashboardContent() {
-  // Client-side safety check
+  // Early return for server-side rendering
   if (typeof window === 'undefined') {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>
   }
 
+  return <DashboardContentImpl />
+}
+
+function DashboardContentImpl() {
   const sessionResult = useSession()
   const { data: session, status } = sessionResult || { data: null, status: 'loading' }
   const router = useRouter()

@@ -6,11 +6,15 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export default function JoinLeagueClient({ code }: { code: string }) {
-  // Client-side safety check
+  // Early return for server-side rendering
   if (typeof window === 'undefined') {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>
   }
 
+  return <JoinLeagueClientImpl code={code} />
+}
+
+function JoinLeagueClientImpl({ code }: { code: string }) {
   const sessionResult = useSession()
   const { data: session, status } = sessionResult || { data: null, status: 'loading' }
   const router = useRouter()

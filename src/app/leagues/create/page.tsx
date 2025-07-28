@@ -7,11 +7,15 @@ import Link from 'next/link'
 
 
 function CreateLeagueContent() {
-  // Client-side safety check
+  // Early return for server-side rendering
   if (typeof window === 'undefined') {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>
   }
 
+  return <CreateLeagueContentImpl />
+}
+
+function CreateLeagueContentImpl() {
   const sessionResult = useSession()
   const { data: session, status } = sessionResult || { data: null, status: 'loading' }
   const router = useRouter()

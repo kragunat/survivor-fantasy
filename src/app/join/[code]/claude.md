@@ -30,6 +30,28 @@ export default function JoinLeague() {
 }
 ```
 
+### Hook Separation Pattern (`client.tsx`) ✅
+- Two-layer component structure prevents server-side hook execution
+- Outer component checks for client-side environment
+- Inner component contains all hooks and logic
+
+```typescript
+export default function JoinLeagueClient({ code }: { code: string }) {
+  // Early return for server-side rendering
+  if (typeof window === 'undefined') {
+    return <div>Loading...</div>
+  }
+
+  return <JoinLeagueClientImpl code={code} />
+}
+
+function JoinLeagueClientImpl({ code }: { code: string }) {
+  const sessionResult = useSession()
+  const { data: session, status } = sessionResult || { data: null, status: 'loading' }
+  // ... all other hooks and logic
+}
+```
+
 ### Client Component (`client.tsx`) ✅
 - Marked with `'use client'` directive
 - Contains all hooks and interactive logic:
@@ -54,8 +76,9 @@ TypeError: Cannot destructure property 'data' of '(0 , f.useSession)(...)' as it
 ### Solution Applied
 1. **Complete client-side architecture**: All components marked with `'use client'`
 2. **useParams() instead of async params**: Eliminates server-side parameter handling
-3. **Defensive destructuring**: Added null checks for `useSession()` result
-4. **Zero server-side execution**: No possibility of server-side hook rendering
+3. **Component separation pattern**: Early return wrapper prevents hook execution during SSR
+4. **Defensive destructuring**: Added null checks for `useSession()` result
+5. **Zero server-side hook execution**: Hooks only called after client-side confirmation
 
 ## Features Implemented ✅
 

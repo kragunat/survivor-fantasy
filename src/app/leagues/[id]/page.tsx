@@ -40,11 +40,15 @@ interface Pick {
 }
 
 function LeagueOverviewContent({ leagueId }: { leagueId: string }) {
-  // Client-side safety check
+  // Early return for server-side rendering
   if (typeof window === 'undefined') {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>
   }
 
+  return <LeagueOverviewContentImpl leagueId={leagueId} />
+}
+
+function LeagueOverviewContentImpl({ leagueId }: { leagueId: string }) {
   const sessionResult = useSession()
   const { data: session, status } = sessionResult || { data: null, status: 'loading' }
   const router = useRouter()
