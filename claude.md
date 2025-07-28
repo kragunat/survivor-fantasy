@@ -58,8 +58,21 @@ src/
 - **invitations**: id, league_id, email, code, expires_at
 
 ## Next Steps
-1. Choose and implement database solution
-2. Set up authentication
-3. Create basic pages (login, dashboard, league management)
+1. Choose and implement database solution ✅
+2. Set up authentication ✅
+3. Create basic pages (login, dashboard, league management) ✅ (partial)
 4. Implement NFL data integration
 5. Build pick submission and tracking features
+
+## Documentation Structure
+
+Detailed documentation for each part of the codebase can be found in claude.md files throughout the src directory:
+
+- **src/claude.md** - Overall source code architecture
+- **src/app/claude.md** - Pages and routing structure
+- **src/app/api/claude.md** - API routes documentation
+- **src/lib/claude.md** - Utilities and configurations
+- **src/components/claude.md** - Component library plans
+- **src/types/claude.md** - TypeScript type definitions
+
+These files provide context for AI assistants and developers working on specific parts of the codebase.
