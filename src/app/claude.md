@@ -1,52 +1,145 @@
-# App Directory
+# App Directory - Next.js 15 App Router
 
-This directory contains all Next.js App Router pages and API routes.
+This directory contains all Next.js App Router pages and API routes for the Survivor Fantasy League application.
 
-## Structure
+## Current Structure
 
-### Pages
+### Core Pages ✅
 - **page.tsx** - Landing page with hero section and CTAs
-- **layout.tsx** - Root layout with global styles and metadata
-- **auth/** - Authentication-related pages
-  - **signin/page.tsx** - Sign in/up page with email and Google OAuth
-- **dashboard/** - Protected pages for authenticated users
-  - **page.tsx** - Main dashboard showing user's leagues
+- **layout.tsx** - Root layout with SessionProvider and global styles
+- **providers.tsx** - Client-side providers (NextAuth SessionProvider)
 
-### API Routes
-- **api/auth/[...nextauth]/** - NextAuth.js authentication endpoints
-- **api/auth/signup/** - Custom signup endpoint for Supabase
+### Authentication Pages ✅
+- **auth/signin/page.tsx** - Sign in/up page with email and Google OAuth, wrapped in Suspense for static generation
 
-## Key Patterns
+### Dashboard ✅
+- **dashboard/page.tsx** - User dashboard showing all leagues with status and quick actions
+- **dashboard/layout.tsx** - Dynamic layout to prevent static generation
 
-### Authentication Flow
-1. User visits protected page
-2. NextAuth checks session
-3. Redirect to /auth/signin if not authenticated
-4. After auth, redirect back to intended page
+### League Management ✅
+- **leagues/create/page.tsx** - Create new league form with validation and error handling
+- **leagues/create/layout.tsx** - Dynamic layout
+- **leagues/join/page.tsx** - Manual invitation code entry form
+- **leagues/join/layout.tsx** - Dynamic layout
+- **leagues/[id]/page.tsx** - League overview showing members, picks, and league details
+- **leagues/[id]/layout.tsx** - Dynamic layout
 
-### Protected Pages Pattern
+### Invitation System ✅
+- **join/[code]/page.tsx** - Handle invite link clicks with automatic auth flow
+
+### API Routes ✅
+- **api/auth/[...nextauth]/route.ts** - NextAuth.js authentication endpoints
+- **api/auth/signup/route.ts** - Custom signup endpoint for Supabase
+- **api/leagues/route.ts** - Create leagues endpoint
+- **api/leagues/[id]/route.ts** - Get league details, members, and user picks
+- **api/leagues/[id]/invite/route.ts** - Create league invitations with unique codes
+- **api/invitations/[code]/route.ts** - Get invitation details for validation
+- **api/invitations/[code]/accept/route.ts** - Accept league invitations
+- **api/user/leagues/route.ts** - Get user's leagues for dashboard
+
+## Implementation Patterns
+
+### Authentication Flow ✅
+1. SessionProvider wraps entire app in layout
+2. `useSession()` hook for client-side auth state
+3. Protected pages redirect to signin if not authenticated
+4. Invite links preserve destination after auth
+
+### Dynamic Rendering
+All pages using `useSession()` require dynamic rendering:
 ```typescript
-const session = await getServerSession(authOptions)
-if (!session) {
-  redirect('/auth/signin')
+// In layout.tsx
+export const dynamic = 'force-dynamic'
+```
+
+### Error Handling Pattern
+```typescript
+const [error, setError] = useState('')
+// API call with try/catch
+if (!response.ok) {
+  const errorData = await response.json()
+  setError(errorData.error || 'Operation failed')
 }
 ```
 
-### Styling Approach
-- Tailwind CSS classes for all styling
-- Custom color palette using `primary-*` classes
-- Responsive design with Tailwind breakpoints
+### League Access Control
+```typescript
+// Check league membership in API routes
+const { data: membership } = await supabase
+  .from('league_members')
+  .select('id')
+  .eq('league_id', leagueId)
+  .eq('user_id', session.user.id)
+  .single()
+```
 
-## Planned Features
-- **leagues/** - League management pages
-  - Create league
-  - League settings
-  - Invite members
-- **picks/** - Weekly pick submission
-- **standings/** - League standings and eliminations
+## Database Integration
 
-## API Design Principles
-- RESTful endpoints for CRUD operations
-- Server-side validation for all inputs
-- Consistent error response format
-- Use Supabase admin client only when needed
+### Admin Client Usage
+API routes use admin client for bypass RLS:
+```typescript
+import { createAdminClient } from '@/lib/supabase/admin'
+const supabase = createAdminClient()
+```
+
+### Session Validation
+All protected API routes validate NextAuth session:
+```typescript
+const session = await getServerSession(authOptions)
+if (!session?.user?.id) {
+  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+}
+```
+
+## User Experience Features
+
+### Dashboard ✅
+- Shows all user's leagues with status indicators
+- Commissioner status with crown emoji
+- Elimination status with week number
+- Quick "View League" access buttons
+- Loading states and empty states
+
+### League Overview ✅
+- Member list with join dates and elimination status
+- User's personal picks history
+- Commissioner controls (invite button)
+- League statistics and information
+
+### Invitation System ✅
+- Unique codes with 7-day expiration
+- Automatic league joining for authenticated users
+- Seamless auth flow for new users
+- Email-based invitation tracking
+
+## Technical Considerations
+
+### Static Generation Issues
+- All pages with session hooks need dynamic layouts
+- Suspense boundaries for proper loading states
+- Client component wrappers for server-side compatibility
+
+### Type Safety
+```typescript
+interface League {
+  id: string
+  name: string
+  season_year: number
+  commissioner: {
+    name: string
+    email: string
+  }
+}
+```
+
+### Performance Optimizations
+- Efficient database queries with joins
+- Loading states for better UX
+- Error boundaries for graceful failures
+
+## Next Steps 🔄
+1. Add league settings page for commissioners
+2. Build weekly pick submission interface (`/leagues/[id]/picks`)
+3. Implement game data integration
+4. Add standings page (`/leagues/[id]/standings`)
+5. Build pick history and analytics views
