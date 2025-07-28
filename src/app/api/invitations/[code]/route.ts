@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createClient } from '@/lib/supabase/server'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ code: string }> }
 ) {
   const { code } = await params
-  const supabase = createServerComponentClient({ cookies })
+  const supabase = await createClient()
   
   try {
     const { data: invitation, error } = await supabase

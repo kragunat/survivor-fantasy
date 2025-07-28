@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createClient } from '@/lib/supabase/server'
 import { nanoid } from 'nanoid'
 
 export async function POST(
@@ -22,7 +21,7 @@ export async function POST(
     return NextResponse.json({ error: 'Email is required' }, { status: 400 })
   }
 
-  const supabase = createServerComponentClient({ cookies })
+  const supabase = await createClient()
   
   try {
     // Verify user is commissioner of this league
