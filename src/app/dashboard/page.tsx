@@ -28,6 +28,31 @@ function DashboardContent() {
   const [leagues, setLeagues] = useState<UserLeague[]>([])
   const [loading, setLoading] = useState(true)
 
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin')
+      return
+    }
+    
+    if (status === 'authenticated') {
+      const fetchLeagues = async () => {
+        try {
+          const response = await fetch('/api/user/leagues')
+          if (response.ok) {
+            const data = await response.json()
+            setLeagues(data.leagues)
+          }
+        } catch (error) {
+          console.error('Error fetching leagues:', error)
+        } finally {
+          setLoading(false)
+        }
+      }
+
+      fetchLeagues()
+    }
+  }, [status])
+
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -38,29 +63,6 @@ function DashboardContent() {
       </div>
     )
   }
-
-  useEffect(() => {
-    if (!session) {
-      router.push('/auth/signin')
-      return
-    }
-
-    const fetchLeagues = async () => {
-      try {
-        const response = await fetch('/api/user/leagues')
-        if (response.ok) {
-          const data = await response.json()
-          setLeagues(data.leagues)
-        }
-      } catch (error) {
-        console.error('Error fetching leagues:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchLeagues()
-  }, [session])
 
   if (!session) {
     return null

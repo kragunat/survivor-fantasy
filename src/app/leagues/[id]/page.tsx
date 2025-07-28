@@ -60,33 +60,35 @@ function LeagueOverviewContent({ leagueId }: { leagueId: string }) {
   }
 
   useEffect(() => {
-    if (!session) {
+    if (status === 'unauthenticated') {
       router.push('/auth/signin')
       return
     }
-
-    const fetchLeague = async () => {
-      try {
-        const response = await fetch(`/api/leagues/${leagueId}`)
-        if (response.ok) {
-          const data = await response.json()
-          setLeague(data.league)
-          setMembers(data.members)
-          setUserPicks(data.userPicks)
-        } else if (response.status === 403) {
-          setError('You are not a member of this league')
-        } else {
-          setError('Failed to load league')
+    
+    if (status === 'authenticated') {
+      const fetchLeague = async () => {
+        try {
+          const response = await fetch(`/api/leagues/${leagueId}`)
+          if (response.ok) {
+            const data = await response.json()
+            setLeague(data.league)
+            setMembers(data.members)
+            setUserPicks(data.userPicks)
+          } else if (response.status === 403) {
+            setError('You are not a member of this league')
+          } else {
+            setError('Failed to load league')
+          }
+        } catch (err) {
+          setError('Network error occurred')
+        } finally {
+          setLoading(false)
         }
-      } catch (err) {
-        setError('Network error occurred')
-      } finally {
-        setLoading(false)
       }
-    }
 
-    fetchLeague()
-  }, [leagueId, session])
+      fetchLeague()
+    }
+  }, [leagueId, status])
 
   if (!session) {
     return null

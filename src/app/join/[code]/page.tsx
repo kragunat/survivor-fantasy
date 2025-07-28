@@ -38,7 +38,7 @@ function JoinLeagueContent({ code }: { code: string }) {
     if (session?.user && invitation && !joining) {
       handleJoin()
     }
-  }, [session, invitation])
+  }, [session?.user?.id, invitation?.id, joining])
 
   const handleJoin = async () => {
     if (!session?.user) return
