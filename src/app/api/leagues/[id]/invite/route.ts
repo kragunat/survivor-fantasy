@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { nanoid } from 'nanoid'
 
 export async function POST(
@@ -11,18 +10,21 @@ export async function POST(
 ) {
   const { id: leagueId } = await params
   const session = await getServerSession(authOptions)
-  
+
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const { email } = await request.json()
+  
+  // Allow generic invites without specific email
+  const inviteEmail = email === 'general-invite' ? 'general-invite@example.com' : email
 
-  if (!email) {
+  if (!inviteEmail) {
     return NextResponse.json({ error: 'Email is required' }, { status: 400 })
   }
 
-  const supabase = createServerComponentClient({ cookies })
+  const supabase = createAdminClient()
   
   try {
     // Verify user is commissioner of this league
@@ -47,7 +49,7 @@ export async function POST(
       .from('invitations')
       .insert({
         league_id: leagueId,
-        email,
+        email: inviteEmail,
         code,
       })
       .select()

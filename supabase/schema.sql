@@ -115,6 +115,9 @@ CREATE POLICY "League members viewable by league participants" ON public.league_
     )
   );
 
+CREATE POLICY "Users can join leagues" ON public.league_members
+  FOR INSERT WITH CHECK (user_id = auth.uid());
+
 -- Teams policies (public read)
 CREATE POLICY "Teams are viewable by everyone" ON public.teams
   FOR SELECT USING (true);

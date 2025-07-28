@@ -57,12 +57,25 @@ src/
 - **picks**: id, league_member_id, week, team_id, created_at
 - **invitations**: id, league_id, email, code, expires_at
 
-## Next Steps
-1. Choose and implement database solution ✅
-2. Set up authentication ✅
-3. Create basic pages (login, dashboard, league management) ✅ (partial)
-4. Implement NFL data integration
-5. Build pick submission and tracking features
+## Implementation Status
+
+### Completed Features ✅
+1. **Database Setup**: Supabase PostgreSQL with full schema implemented
+2. **Authentication**: NextAuth.js with email/password and Google OAuth
+3. **League Management**: 
+   - Create leagues with commissioners
+   - Invite system with unique codes and expiration
+   - Join leagues via invite links
+   - League overview pages showing members and picks
+4. **Dashboard**: Shows user's leagues with status and quick access
+5. **User Flow**: Complete sign-up → create/join league → view league workflow
+
+### Next Steps 🔄
+1. Implement NFL data integration (ESPN API)
+2. Build weekly pick submission interface
+3. Add game outcome tracking and elimination logic
+4. Build league standings and history views
+5. Add real-time notifications for picks and results
 
 ## Documentation Structure
 

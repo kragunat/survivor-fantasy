@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -17,7 +16,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'League name is required' }, { status: 400 })
   }
 
-  const supabase = createServerComponentClient({ cookies })
+  const supabase = createAdminClient()
   
   try {
     const { data: league, error } = await supabase

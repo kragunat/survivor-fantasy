@@ -5,22 +5,20 @@ import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 
-
-function CreateLeagueContent() {
+function JoinLeagueContent() {
   // Early return for server-side rendering
   if (typeof window === 'undefined') {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>
   }
 
-  return <CreateLeagueContentImpl />
+  return <JoinLeagueContentImpl />
 }
 
-function CreateLeagueContentImpl() {
+function JoinLeagueContentImpl() {
   const sessionResult = useSession()
   const { data: session, status } = sessionResult || { data: null, status: 'loading' }
   const router = useRouter()
-  const [name, setName] = useState('')
-  const [maxPlayers, setMaxPlayers] = useState(100)
+  const [inviteCode, setInviteCode] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -37,44 +35,24 @@ function CreateLeagueContentImpl() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Session:', session)
-    console.log('User ID:', session?.user?.id)
     
-    if (!session?.user?.id) {
-      setError('You must be logged in to create a league')
+    if (!inviteCode.trim()) {
+      setError('Please enter an invitation code')
       return
     }
 
     setIsLoading(true)
     setError('')
-    
-    try {
-      const response = await fetch('/api/leagues', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, maxPlayers }),
-      })
 
-      if (response.ok) {
-        const league = await response.json()
-        router.push(`/leagues/${league.id}`)
-      } else {
-        const errorData = await response.json()
-        setError(errorData.error || 'Failed to create league')
-      }
-    } catch (error) {
-      console.error('Error creating league:', error)
-      setError('Network error occurred')
-    } finally {
-      setIsLoading(false)
-    }
+    // Redirect to the join page with the code
+    router.push(`/join/${inviteCode.trim()}`)
   }
 
   if (!session) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Please sign in to create a league</h1>
+          <h1 className="text-2xl font-bold mb-4">Please sign in to join a league</h1>
           <Link href="/auth/signin" className="bg-primary-600 text-white px-4 py-2 rounded">
             Sign In
           </Link>
@@ -88,7 +66,7 @@ function CreateLeagueContentImpl() {
       <div className="max-w-md mx-auto">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <h1 className="text-3xl font-bold text-primary-900 mb-6 text-center">
-            Create New League
+            Join a League
           </h1>
 
           {error && (
@@ -99,32 +77,21 @@ function CreateLeagueContentImpl() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                League Name
+              <label htmlFor="inviteCode" className="block text-sm font-medium text-gray-700 mb-1">
+                Invitation Code
               </label>
               <input
-                id="name"
+                id="inviteCode"
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value)}
+                placeholder="Enter your invitation code"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                 required
               />
-            </div>
-
-            <div>
-              <label htmlFor="maxPlayers" className="block text-sm font-medium text-gray-700 mb-1">
-                Max Players
-              </label>
-              <input
-                id="maxPlayers"
-                type="number"
-                min="2"
-                max="1000"
-                value={maxPlayers}
-                onChange={(e) => setMaxPlayers(parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
+              <p className="text-sm text-gray-500 mt-1">
+                Ask your league commissioner for the invitation code.
+              </p>
             </div>
 
             <button
@@ -132,7 +99,7 @@ function CreateLeagueContentImpl() {
               disabled={isLoading}
               className="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700 transition font-semibold disabled:opacity-50"
             >
-              {isLoading ? 'Creating...' : 'Create League'}
+              {isLoading ? 'Joining...' : 'Join League'}
             </button>
           </form>
 
@@ -148,10 +115,10 @@ function CreateLeagueContentImpl() {
   )
 }
 
-export default function CreateLeague() {
+export default function JoinLeague() {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
-      <CreateLeagueContent />
+      <JoinLeagueContent />
     </Suspense>
   )
 }
