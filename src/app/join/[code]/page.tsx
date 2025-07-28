@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 function JoinLeagueContent({ code }: { code: string }) {
-  const { data: session, status } = useSession()
+  const sessionResult = useSession()
+  const { data: session, status } = sessionResult || { data: null, status: 'loading' }
   const router = useRouter()
   const [invitation, setInvitation] = useState<any>(null)
   const [loading, setLoading] = useState(true)

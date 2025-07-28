@@ -7,7 +7,8 @@ import Link from 'next/link'
 
 
 function CreateLeagueContent() {
-  const { data: session, status } = useSession()
+  const sessionResult = useSession()
+  const { data: session, status } = sessionResult || { data: null, status: 'loading' }
   const router = useRouter()
   const [name, setName] = useState('')
   const [maxPlayers, setMaxPlayers] = useState(100)

@@ -40,7 +40,8 @@ interface Pick {
 }
 
 function LeagueOverviewContent({ leagueId }: { leagueId: string }) {
-  const { data: session, status } = useSession()
+  const sessionResult = useSession()
+  const { data: session, status } = sessionResult || { data: null, status: 'loading' }
   const router = useRouter()
   const [league, setLeague] = useState<League | null>(null)
   const [members, setMembers] = useState<Member[]>([])
@@ -95,45 +96,25 @@ function LeagueOverviewContent({ leagueId }: { leagueId: string }) {
   }, [leagueId, status])
 
   const handleGenerateInvite = async () => {
-    if (!league) {
-      console.error('No league data available')
-      return
-    }
+    if (!league) return
     
-    console.log('Starting invite generation for league:', league.id)
     setGeneratingInvite(true)
-    
     try {
-      const url = `/api/leagues/${league.id}/invite`
-      console.log('Making request to URL:', url)
-      
-      const response = await fetch(url, {
+      const response = await fetch(`/api/leagues/${league.id}/invite`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'general-invite' }),
       })
 
-      console.log('Response status:', response.status)
-      console.log('Response ok:', response.ok)
-      
       if (response.ok) {
         const data = await response.json()
-        console.log('Success response:', data)
         setInviteLink(data.inviteUrl)
         setShowInvite(true)
       } else {
-        console.log('Error response status:', response.status)
-        try {
-          const errorData = await response.json()
-          console.log('Error response data:', errorData)
-          setError(errorData.error || 'Failed to generate invite')
-        } catch (parseError) {
-          console.log('Could not parse error response:', parseError)
-          setError(`HTTP ${response.status}: ${response.statusText}`)
-        }
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        setError(errorData.error || 'Failed to generate invite')
       }
     } catch (err) {
-      console.error('Network error:', err)
       setError('Network error occurred')
     } finally {
       setGeneratingInvite(false)

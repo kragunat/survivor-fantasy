@@ -8,13 +8,8 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  console.log('POST /api/leagues/[id]/invite - Starting')
-  const resolvedParams = await params
-  const { id: leagueId } = resolvedParams
-  console.log('League ID:', leagueId)
-  
+  const { id: leagueId } = await params
   const session = await getServerSession(authOptions)
-  console.log('Session user ID:', session?.user?.id)
 
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

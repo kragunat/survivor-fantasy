@@ -23,7 +23,8 @@ interface UserLeague {
 }
 
 function DashboardContent() {
-  const { data: session, status } = useSession()
+  const sessionResult = useSession()
+  const { data: session, status } = sessionResult || { data: null, status: 'loading' }
   const router = useRouter()
   const [leagues, setLeagues] = useState<UserLeague[]>([])
   const [loading, setLoading] = useState(true)
