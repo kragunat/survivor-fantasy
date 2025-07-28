@@ -7,8 +7,9 @@ import { nanoid } from 'nanoid'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id: leagueId } = await params
   const session = await getServerSession(authOptions)
   
   if (!session?.user?.id) {
@@ -16,7 +17,6 @@ export async function POST(
   }
 
   const { email } = await request.json()
-  const leagueId = params.id
 
   if (!email) {
     return NextResponse.json({ error: 'Email is required' }, { status: 400 })

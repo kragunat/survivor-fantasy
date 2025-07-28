@@ -4,8 +4,9 @@ import { cookies } from 'next/headers'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { code: string } }
+  { params }: { params: Promise<{ code: string }> }
 ) {
+  const { code } = await params
   const supabase = createServerComponentClient({ cookies })
   
   try {
@@ -15,7 +16,7 @@ export async function GET(
         *,
         league:leagues(id, name, commissioner_id)
       `)
-      .eq('code', params.code)
+      .eq('code', code)
       .gt('expires_at', new Date().toISOString())
       .single()
 

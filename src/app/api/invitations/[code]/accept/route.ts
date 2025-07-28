@@ -6,8 +6,9 @@ import { cookies } from 'next/headers'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { code: string } }
+  { params }: { params: Promise<{ code: string }> }
 ) {
+  const { code } = await params
   const session = await getServerSession(authOptions)
   
   if (!session?.user?.id) {
@@ -21,7 +22,7 @@ export async function POST(
     const { data: invitation, error: inviteError } = await supabase
       .from('invitations')
       .select('*')
-      .eq('code', params.code)
+      .eq('code', code)
       .gt('expires_at', new Date().toISOString())
       .single()
 
