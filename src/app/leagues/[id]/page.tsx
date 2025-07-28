@@ -47,6 +47,10 @@ function LeagueOverviewContent({ leagueId }: { leagueId: string }) {
   const [userPicks, setUserPicks] = useState<Pick[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [showInvite, setShowInvite] = useState(false)
+  const [inviteLink, setInviteLink] = useState('')
+  const [generatingInvite, setGeneratingInvite] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   if (status === 'loading') {
     return (
@@ -89,6 +93,42 @@ function LeagueOverviewContent({ leagueId }: { leagueId: string }) {
       fetchLeague()
     }
   }, [leagueId, status])
+
+  const handleGenerateInvite = async () => {
+    if (!league) return
+    
+    setGeneratingInvite(true)
+    try {
+      const response = await fetch(`/api/leagues/${league.id}/invite`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'general-invite' }), // Generic invite
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setInviteLink(data.inviteUrl)
+        setShowInvite(true)
+      } else {
+        const errorData = await response.json()
+        setError(errorData.error || 'Failed to generate invite')
+      }
+    } catch (err) {
+      setError('Network error occurred')
+    } finally {
+      setGeneratingInvite(false)
+    }
+  }
+
+  const copyInviteLink = async () => {
+    try {
+      await navigator.clipboard.writeText(inviteLink)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000) // Reset after 2 seconds
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err)
+    }
+  }
 
   if (!session) {
     return null
@@ -167,12 +207,47 @@ function LeagueOverviewContent({ leagueId }: { leagueId: string }) {
                 </p>
               </div>
               {isCommissioner && (
-                <button className="bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700">
-                  Invite Players
+                <button 
+                  onClick={handleGenerateInvite}
+                  disabled={generatingInvite}
+                  className="bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700 disabled:opacity-50"
+                >
+                  {generatingInvite ? 'Generating...' : 'Invite Players'}
                 </button>
               )}
             </div>
           </div>
+
+          {/* Invite Link Section */}
+          {showInvite && inviteLink && (
+            <div className="bg-white rounded-lg shadow p-6 mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Invite Link</h3>
+              <p className="text-gray-600 mb-4">
+                Share this link with players to invite them to join your league:
+              </p>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value={inviteLink}
+                  readOnly
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm"
+                />
+                <button
+                  onClick={copyInviteLink}
+                  className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+                    copied 
+                      ? 'bg-green-600 text-white' 
+                      : 'bg-primary-600 text-white hover:bg-primary-700'
+                  }`}
+                >
+                  {copied ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+              <p className="text-sm text-gray-500 mt-2">
+                This link will expire in 7 days and can only be used once per person.
+              </p>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* League Members */}

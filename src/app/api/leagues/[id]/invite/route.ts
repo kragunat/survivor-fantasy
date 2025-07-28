@@ -16,8 +16,11 @@ export async function POST(
   }
 
   const { email } = await request.json()
+  
+  // Allow generic invites without specific email
+  const inviteEmail = email === 'general-invite' ? 'general-invite@example.com' : email
 
-  if (!email) {
+  if (!inviteEmail) {
     return NextResponse.json({ error: 'Email is required' }, { status: 400 })
   }
 
@@ -46,7 +49,7 @@ export async function POST(
       .from('invitations')
       .insert({
         league_id: leagueId,
-        email,
+        email: inviteEmail,
         code,
       })
       .select()
