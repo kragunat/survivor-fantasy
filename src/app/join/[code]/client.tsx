@@ -6,11 +6,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export default function JoinLeagueClient({ code }: { code: string }) {
-  // Early return for server-side rendering
-  if (typeof window === 'undefined') {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
-  }
-
   return <JoinLeagueClientImpl code={code} />
 }
 
@@ -56,7 +51,10 @@ function JoinLeagueClientImpl({ code }: { code: string }) {
 
       if (response.ok) {
         const data = await response.json()
-        router.push(`/leagues/${data.leagueId}`)
+        // Add a small delay to ensure database propagation before redirect
+        setTimeout(() => {
+          router.push(`/leagues/${data.leagueId}`)
+        }, 1000)
       } else {
         const errorData = await response.json()
         setError(errorData.error || 'Failed to join league')
