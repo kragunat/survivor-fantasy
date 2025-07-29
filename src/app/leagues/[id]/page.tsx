@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 
 interface League {
   id: string
@@ -73,6 +74,26 @@ function LeagueOverviewContentImpl({ leagueId }: { leagueId: string }) {
     )
   }
 
+  const fetchLeague = async () => {
+    try {
+      const response = await fetch(`/api/leagues/${leagueId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setLeague(data.league)
+        setMembers(data.members)
+        setUserPicks(data.userPicks)
+      } else if (response.status === 403) {
+        setError('You are not a member of this league')
+      } else {
+        setError('Failed to load league')
+      }
+    } catch (err) {
+      setError('Network error occurred')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/signin')
@@ -80,27 +101,37 @@ function LeagueOverviewContentImpl({ leagueId }: { leagueId: string }) {
     }
     
     if (status === 'authenticated') {
-      const fetchLeague = async () => {
-        try {
-          const response = await fetch(`/api/leagues/${leagueId}`)
-          if (response.ok) {
-            const data = await response.json()
-            setLeague(data.league)
-            setMembers(data.members)
-            setUserPicks(data.userPicks)
-          } else if (response.status === 403) {
-            setError('You are not a member of this league')
-          } else {
-            setError('Failed to load league')
-          }
-        } catch (err) {
-          setError('Network error occurred')
-        } finally {
-          setLoading(false)
-        }
-      }
-
       fetchLeague()
+    }
+  }, [leagueId, status])
+
+  // Realtime subscription for league members
+  useEffect(() => {
+    if (!leagueId || status !== 'authenticated') return
+
+    const supabase = createClient()
+    
+    // Subscribe to changes in league_members table
+    const subscription = supabase
+      .channel(`league_members:${leagueId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'league_members',
+          filter: `league_id=eq.${leagueId}`
+        },
+        (payload) => {
+          console.log('Realtime update:', payload)
+          // Refetch the league data when members change
+          fetchLeague()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      subscription.unsubscribe()
     }
   }, [leagueId, status])
 

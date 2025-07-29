@@ -9,11 +9,15 @@ function SignInContent() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
+  const [error, setError] = useState('')
   const searchParams = useSearchParams()
   const action = searchParams.get('action')
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError('')
+    
     if (isSignUp) {
       // Handle sign up with Supabase
       const response = await fetch('/api/auth/signup', {
@@ -21,11 +25,27 @@ function SignInContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       })
+      
       if (response.ok) {
-        signIn('credentials', { email, password, callbackUrl: '/dashboard' })
+        // Sign in immediately after signup with the callback URL
+        const result = await signIn('credentials', { 
+          email, 
+          password, 
+          callbackUrl,
+          redirect: false 
+        })
+        
+        if (result?.ok) {
+          window.location.href = callbackUrl
+        } else {
+          setError('Failed to sign in after signup')
+        }
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Failed to sign up')
       }
     } else {
-      signIn('credentials', { email, password, callbackUrl: '/dashboard' })
+      signIn('credentials', { email, password, callbackUrl })
     }
   }
 
@@ -35,6 +55,22 @@ function SignInContent() {
         <h2 className="text-3xl font-bold text-primary-900 mb-6 text-center">
           {isSignUp ? 'Create Account' : 'Sign In'}
         </h2>
+        
+        {callbackUrl?.includes('/join/') && (
+          <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-4" role="alert">
+            <span className="block sm:inline">
+              {isSignUp 
+                ? "Create an account to join the league you've been invited to!" 
+                : "Sign in to join the league you've been invited to!"}
+            </span>
+          </div>
+        )}
+        
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">
+            <span className="block sm:inline">{error}</span>
+          </div>
+        )}
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
