@@ -131,6 +131,21 @@ function LeagueOverviewContentImpl({ leagueId }: { leagueId: string }) {
     
     console.log('Setting up realtime subscription for league:', leagueId)
     setRealtimeStatus('connecting')
+
+    // Define refresh function inside effect to avoid dependency issues
+    const refreshData = async () => {
+      try {
+        const response = await fetch(`/api/leagues/${leagueId}`)
+        if (response.ok) {
+          const data = await response.json()
+          setLeague(data.league)
+          setMembers(data.members)
+          setUserPicks(data.userPicks)
+        }
+      } catch (err) {
+        console.error('Error refreshing league data:', err)
+      }
+    }
     
     // Subscribe to changes in league_members table
     const subscription = supabase
@@ -146,8 +161,8 @@ function LeagueOverviewContentImpl({ leagueId }: { leagueId: string }) {
         (payload) => {
           console.log('Realtime update received:', payload)
           setRealtimeStatus('connected')
-          // Refresh the league data when members change (without affecting loading state)
-          refreshLeagueData()
+          // Refresh the league data when members change
+          refreshData()
         }
       )
       .subscribe((status) => {
@@ -161,21 +176,12 @@ function LeagueOverviewContentImpl({ leagueId }: { leagueId: string }) {
         }
       })
 
-    // Fallback: Poll for updates every 30 seconds if realtime fails
-    const pollInterval = setInterval(() => {
-      if (realtimeStatus !== 'connected') {
-        console.log('Realtime not connected, polling for updates...')
-        refreshLeagueData()
-      }
-    }, 30000)
-
     return () => {
       console.log('Unsubscribing from realtime')
       setRealtimeStatus('disconnected')
-      clearInterval(pollInterval)
       subscription.unsubscribe()
     }
-  }, [leagueId, status, refreshLeagueData, realtimeStatus])
+  }, [leagueId, status])
 
   const handleGenerateInvite = async () => {
     if (!league) return
