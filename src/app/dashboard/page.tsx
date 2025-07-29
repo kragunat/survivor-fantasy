@@ -23,19 +23,6 @@ interface UserLeague {
 }
 
 function DashboardContent() {
-  // Early return for server-side rendering
-  if (typeof window === 'undefined') {
-    return (
-      <section className="hero is-fullheight">
-        <div className="hero-body">
-          <div className="container has-text-centered">
-            <button className="button is-loading is-large is-primary"></button>
-          </div>
-        </div>
-      </section>
-    )
-  }
-
   return <DashboardContentImpl />
 }
 

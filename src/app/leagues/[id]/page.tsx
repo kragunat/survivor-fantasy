@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { RealtimeTest } from '@/components/RealtimeTest'
 
 interface League {
   id: string
@@ -41,11 +42,6 @@ interface Pick {
 }
 
 function LeagueOverviewContent({ leagueId }: { leagueId: string }) {
-  // Early return for server-side rendering
-  if (typeof window === 'undefined') {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
-  }
-
   return <LeagueOverviewContentImpl leagueId={leagueId} />
 }
 
@@ -64,6 +60,7 @@ function LeagueOverviewContentImpl({ leagueId }: { leagueId: string }) {
   const [copied, setCopied] = useState(false)
   const [removingMember, setRemovingMember] = useState<string | null>(null)
   const [showRemoveConfirm, setShowRemoveConfirm] = useState<string | null>(null)
+  const [realtimeStatus, setRealtimeStatus] = useState<string>('disconnected')
 
   if (status === 'loading') {
     return (
@@ -125,13 +122,19 @@ function LeagueOverviewContentImpl({ leagueId }: { leagueId: string }) {
 
   // Realtime subscription for league members
   useEffect(() => {
-    if (!leagueId || status !== 'authenticated') return
+    if (!leagueId || status !== 'authenticated') {
+      setRealtimeStatus('disconnected')
+      return
+    }
 
     const supabase = createClient()
     
+    console.log('Setting up realtime subscription for league:', leagueId)
+    setRealtimeStatus('connecting')
+    
     // Subscribe to changes in league_members table
     const subscription = supabase
-      .channel(`league_members:${leagueId}`)
+      .channel(`league_members_${leagueId}`)
       .on(
         'postgres_changes',
         {
@@ -141,17 +144,38 @@ function LeagueOverviewContentImpl({ leagueId }: { leagueId: string }) {
           filter: `league_id=eq.${leagueId}`
         },
         (payload) => {
-          console.log('Realtime update:', payload)
+          console.log('Realtime update received:', payload)
+          setRealtimeStatus('connected')
           // Refresh the league data when members change (without affecting loading state)
           refreshLeagueData()
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log('Subscription status:', status)
+        if (status === 'SUBSCRIBED') {
+          setRealtimeStatus('connected')
+          console.log('Successfully subscribed to league_members changes')
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          setRealtimeStatus('error')
+          console.error('Realtime subscription failed:', status)
+        }
+      })
+
+    // Fallback: Poll for updates every 30 seconds if realtime fails
+    const pollInterval = setInterval(() => {
+      if (realtimeStatus !== 'connected') {
+        console.log('Realtime not connected, polling for updates...')
+        refreshLeagueData()
+      }
+    }, 30000)
 
     return () => {
+      console.log('Unsubscribing from realtime')
+      setRealtimeStatus('disconnected')
+      clearInterval(pollInterval)
       subscription.unsubscribe()
     }
-  }, [leagueId, status, refreshLeagueData])
+  }, [leagueId, status, refreshLeagueData, realtimeStatus])
 
   const handleGenerateInvite = async () => {
     if (!league) return
@@ -356,11 +380,46 @@ function LeagueOverviewContentImpl({ leagueId }: { leagueId: string }) {
             </div>
           )}
 
+          {/* Temporary Realtime Test */}
+          <RealtimeTest />
+
           <div className="columns">
             {/* League Members */}
             <div className="column">
               <div className="box">
-                <h3 className="title is-5">League Members</h3>
+                <div className="level">
+                  <div className="level-left">
+                    <div className="level-item">
+                      <h3 className="title is-5">League Members</h3>
+                    </div>
+                  </div>
+                  <div className="level-right">
+                    <div className="level-item">
+                      <div className="field is-grouped">
+                        <div className="control">
+                          <span className={`tag is-small ${
+                            realtimeStatus === 'connected' ? 'is-success' : 
+                            realtimeStatus === 'connecting' ? 'is-warning' : 
+                            realtimeStatus === 'error' ? 'is-danger' : 'is-light'
+                          }`}>
+                            {realtimeStatus === 'connected' ? '🟢 Live' : 
+                             realtimeStatus === 'connecting' ? '🟡 Connecting' : 
+                             realtimeStatus === 'error' ? '🔴 Error' : '⚫ Offline'}
+                          </span>
+                        </div>
+                        <div className="control">
+                          <button 
+                            onClick={refreshLeagueData}
+                            className="button is-small is-light"
+                            title="Refresh member list"
+                          >
+                            🔄
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 {members.length === 0 ? (
                   <p className="has-text-grey has-text-centered">No members yet</p>
                 ) : (
