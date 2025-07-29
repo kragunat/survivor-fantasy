@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -78,7 +78,7 @@ function LeagueOverviewContentImpl({ leagueId }: { leagueId: string }) {
     )
   }
 
-  const fetchLeague = async () => {
+  const fetchLeague = useCallback(async () => {
     try {
       const response = await fetch(`/api/leagues/${leagueId}`)
       if (response.ok) {
@@ -96,7 +96,21 @@ function LeagueOverviewContentImpl({ leagueId }: { leagueId: string }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [leagueId])
+
+  const refreshLeagueData = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/leagues/${leagueId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setLeague(data.league)
+        setMembers(data.members)
+        setUserPicks(data.userPicks)
+      }
+    } catch (err) {
+      console.error('Error refreshing league data:', err)
+    }
+  }, [leagueId])
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -107,7 +121,7 @@ function LeagueOverviewContentImpl({ leagueId }: { leagueId: string }) {
     if (status === 'authenticated') {
       fetchLeague()
     }
-  }, [leagueId, status])
+  }, [leagueId, status, fetchLeague])
 
   // Realtime subscription for league members
   useEffect(() => {
@@ -128,8 +142,8 @@ function LeagueOverviewContentImpl({ leagueId }: { leagueId: string }) {
         },
         (payload) => {
           console.log('Realtime update:', payload)
-          // Refetch the league data when members change
-          fetchLeague()
+          // Refresh the league data when members change (without affecting loading state)
+          refreshLeagueData()
         }
       )
       .subscribe()
@@ -137,7 +151,7 @@ function LeagueOverviewContentImpl({ leagueId }: { leagueId: string }) {
     return () => {
       subscription.unsubscribe()
     }
-  }, [leagueId, status])
+  }, [leagueId, status, refreshLeagueData])
 
   const handleGenerateInvite = async () => {
     if (!league) return
