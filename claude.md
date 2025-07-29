@@ -44,7 +44,7 @@ src/
 🔄 **ESPN API** (planned) - Starting with unofficial free API for game data
 
 ### Design System
-✅ **Tailwind CSS** with custom blue and white color palette for clean, modern UI
+✅ **Bulma CSS** - Modern CSS framework similar to Sleeper app styling for clean, responsive UI
 
 ## Database Schema (Planned)
 
@@ -67,8 +67,11 @@ src/
    - Invite system with unique codes and expiration
    - Join leagues via invite links
    - League overview pages showing members and picks
+   - **Commissioner Controls**: Remove players with confirmation dialog
+   - **Realtime Updates**: Live member list updates using Supabase subscriptions
 4. **Dashboard**: Shows user's leagues with status and quick access
 5. **User Flow**: Complete sign-up → create/join league → view league workflow
+6. **Enhanced Signup**: Seamless invite-to-signup-to-join flow preserving context
 
 ### Next Steps 🔄
 1. Implement NFL data integration (ESPN API)
