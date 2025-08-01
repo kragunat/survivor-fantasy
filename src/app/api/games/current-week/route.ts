@@ -18,7 +18,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'League ID required' }, { status: 400 });
     }
 
-    const supabase = createClient();
+    const supabase = await createClient();
     
     // Get user profile
     const { data: profile } = await supabase
@@ -52,7 +52,7 @@ export async function GET(request: Request) {
     const pickDeadline = pickableWeek > 0 ? getPickDeadline(pickableWeek) : null;
 
     // Get games for the pickable week
-    let games = [];
+    let games: any[] = [];
     if (pickableWeek > 0) {
       const { data: weekGames } = await supabase
         .from('games')
