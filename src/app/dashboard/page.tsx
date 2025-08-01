@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import LiveFeed from '@/components/LiveFeed'
 
 interface UserLeague {
   joined_at: string
@@ -122,6 +123,9 @@ function DashboardContentImpl() {
               </div>
             </div>
           </div>
+          
+          {/* Live Feed */}
+          <LiveFeed />
           
           <div>
             <h3 className="title is-4">Your Leagues</h3>

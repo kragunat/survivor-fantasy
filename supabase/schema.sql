@@ -50,7 +50,9 @@ CREATE TABLE public.games (
   home_score INTEGER,
   away_score INTEGER,
   game_time TIMESTAMP WITH TIME ZONE NOT NULL,
-  is_final BOOLEAN DEFAULT FALSE
+  is_final BOOLEAN DEFAULT FALSE,
+  espn_game_id TEXT UNIQUE,
+  last_updated TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
 -- Create picks table
@@ -73,6 +75,25 @@ CREATE TABLE public.invitations (
   expires_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now() + interval '7 days')
 );
 
+-- Create game events table for real-time updates
+CREATE TABLE public.game_events (
+  id SERIAL PRIMARY KEY,
+  game_id INTEGER NOT NULL REFERENCES public.games(id) ON DELETE CASCADE,
+  event_type TEXT NOT NULL, -- 'touchdown', 'field_goal', 'safety', 'game_start', 'game_end', 'quarter_end'
+  team_id INTEGER REFERENCES public.teams(id),
+  description TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  score_home INTEGER,
+  score_away INTEGER
+);
+
+-- Add indexes for performance
+CREATE INDEX idx_game_events_game_id ON public.game_events(game_id);
+CREATE INDEX idx_game_events_team_id ON public.game_events(team_id);
+CREATE INDEX idx_game_events_created_at ON public.game_events(created_at);
+CREATE INDEX idx_games_espn_id ON public.games(espn_game_id);
+CREATE INDEX idx_games_week_season ON public.games(season_year, week);
+
 -- Create RLS policies
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.leagues ENABLE ROW LEVEL SECURITY;
@@ -81,6 +102,7 @@ ALTER TABLE public.teams ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.games ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.picks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.invitations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.game_events ENABLE ROW LEVEL SECURITY;
 
 -- Profiles policies
 CREATE POLICY "Public profiles are viewable by everyone" ON public.profiles
@@ -124,6 +146,10 @@ CREATE POLICY "Teams are viewable by everyone" ON public.teams
 
 -- Games policies (public read)
 CREATE POLICY "Games are viewable by everyone" ON public.games
+  FOR SELECT USING (true);
+
+-- Game events policies (public read)
+CREATE POLICY "Game events are viewable by everyone" ON public.game_events
   FOR SELECT USING (true);
 
 -- Picks policies
