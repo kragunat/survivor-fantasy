@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { authOptions } from '@/lib/auth-options';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getPickableWeek, getPickDeadline } from '@/lib/nfl-utils';
 

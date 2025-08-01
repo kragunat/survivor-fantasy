@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { authOptions } from '@/lib/auth-options';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentNFLWeek, getPickableWeek, arePicksLocked, getPicksUnlockTime, getPickDeadline } from '@/lib/nfl-utils';
 
