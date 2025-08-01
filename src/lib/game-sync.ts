@@ -8,8 +8,15 @@ import { nflApi, GameEvent } from './nfl-api';
 import { getCurrentNFLWeek } from './nfl-utils';
 
 export class GameSyncService {
-  private supabase = createAdminClient();
+  private supabase: any = null;
   private isRunning = false;
+
+  private getSupabase() {
+    if (!this.supabase) {
+      this.supabase = createAdminClient();
+    }
+    return this.supabase;
+  }
 
   /**
    * Sync all games for the current week
@@ -51,11 +58,11 @@ export class GameSyncService {
       }
 
       // Get team ID mappings from database
-      const { data: teams } = await this.supabase
+      const { data: teams } = await this.getSupabase()
         .from('teams')
         .select('id, abbreviation');
       
-      const teamMap = new Map(teams?.map(t => [t.abbreviation, t.id]) || []);
+      const teamMap = new Map<string, number>(teams?.map((t: any) => [t.abbreviation, t.id]) || []);
 
       // Process each game
       for (const espnGame of scoreboard.events) {
@@ -95,7 +102,7 @@ export class GameSyncService {
       }
 
       // Check if game exists in database
-      const { data: existingGame } = await this.supabase
+      const { data: existingGame } = await this.getSupabase()
         .from('games')
         .select('id, home_score, away_score, is_final')
         .eq('espn_game_id', gameData.espnId)
@@ -103,7 +110,7 @@ export class GameSyncService {
 
       if (existingGame) {
         // Update existing game
-        const { error } = await this.supabase
+        const { error } = await this.getSupabase()
           .from('games')
           .update({
             home_score: gameData.homeScore,
@@ -141,7 +148,7 @@ export class GameSyncService {
         }
       } else {
         // Insert new game
-        const { data: newGame, error } = await this.supabase
+        const { data: newGame, error } = await this.getSupabase()
           .from('games')
           .insert({
             season_year: seasonYear,
@@ -208,7 +215,7 @@ export class GameSyncService {
         score_away: event.score?.away || null
       }));
 
-      const { error } = await this.supabase
+      const { error } = await this.getSupabase()
         .from('game_events')
         .insert(eventInserts);
 
@@ -232,7 +239,7 @@ export class GameSyncService {
   ): Promise<void> {
     try {
       // Get game details
-      const { data: game } = await this.supabase
+      const { data: game } = await this.getSupabase()
         .from('games')
         .select(`
           id,
@@ -251,7 +258,7 @@ export class GameSyncService {
       const losingTeamId = homeScore > awayScore ? game.away_team_id : game.home_team_id;
 
       // Find all picks for the losing team in this week
-      const { data: losingPicks } = await this.supabase
+      const { data: losingPicks } = await this.getSupabase()
         .from('picks')
         .select(`
           id,
@@ -270,15 +277,15 @@ export class GameSyncService {
 
       // Eliminate users who picked the losing team
       const eliminationUpdates = losingPicks
-        .filter(pick => !pick.league_members.is_eliminated)
-        .map(pick => ({
+        .filter((pick: any) => !pick.league_members.is_eliminated)
+        .map((pick: any) => ({
           id: pick.league_members.id,
           is_eliminated: true,
           eliminated_week: game.week
         }));
 
       if (eliminationUpdates.length > 0) {
-        const { error } = await this.supabase
+        const { error } = await this.getSupabase()
           .from('league_members')
           .upsert(eliminationUpdates);
 
@@ -288,7 +295,7 @@ export class GameSyncService {
           console.log(`Eliminated ${eliminationUpdates.length} players for game ${gameId}`);
           
           // Store elimination events
-          const eliminationEvents = eliminationUpdates.map(update => ({
+          const eliminationEvents = eliminationUpdates.map((update: any) => ({
             game_id: gameId,
             event_type: 'elimination' as const,
             team_id: losingTeamId,
@@ -297,7 +304,7 @@ export class GameSyncService {
             score_away: awayScore
           }));
 
-          await this.supabase
+          await this.getSupabase()
             .from('game_events')
             .insert(eliminationEvents);
         }
@@ -313,7 +320,7 @@ export class GameSyncService {
   async getUserGameEvents(userId: string, limit: number = 20): Promise<any[]> {
     try {
       // Get user's picks across all leagues
-      const { data: userPicks } = await this.supabase
+      const { data: userPicks } = await this.getSupabase()
         .from('picks')
         .select(`
           team_id,
@@ -330,10 +337,10 @@ export class GameSyncService {
 
       if (!userPicks || userPicks.length === 0) return [];
 
-      const userTeamIds = [...new Set(userPicks.map(pick => pick.team_id))];
+      const userTeamIds = [...new Set(userPicks.map((pick: any) => pick.team_id))];
 
       // Get recent events for user's teams
-      const { data: events } = await this.supabase
+      const { data: events } = await this.getSupabase()
         .from('game_events')
         .select(`
           *,

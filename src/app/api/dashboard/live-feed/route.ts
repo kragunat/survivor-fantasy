@@ -2,9 +2,7 @@ import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { createClient } from '@/lib/supabase/server';
-
-// SSE connection tracking
-const connections = new Map<string, ReadableStreamDefaultController>();
+import { addConnection, removeConnection } from '@/lib/live-feed-broadcast';
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,7 +28,7 @@ export async function GET(request: NextRequest) {
     const stream = new ReadableStream({
       start(controller) {
         // Store connection for broadcasting
-        connections.set(profile.id, controller);
+        addConnection(profile.id, controller);
 
         // Send initial connection message
         const data = JSON.stringify({
@@ -53,18 +51,18 @@ export async function GET(request: NextRequest) {
             })}\n\n`);
           } catch (error) {
             clearInterval(pingInterval);
-            connections.delete(profile.id);
+            removeConnection(profile.id);
           }
         }, 30000); // Ping every 30 seconds
 
         // Cleanup function
         return () => {
           clearInterval(pingInterval);
-          connections.delete(profile.id);
+          removeConnection(profile.id);
         };
       },
       cancel() {
-        connections.delete(profile.id);
+        removeConnection(profile.id);
       }
     });
 
@@ -120,7 +118,7 @@ async function sendInitialEvents(
       return;
     }
 
-    const userTeamIds = [...new Set(userPicks.map(pick => pick.team_id))];
+    const userTeamIds = [...new Set(userPicks.map((pick: any) => pick.team_id))];
 
     // Get recent events for user's teams
     const { data: events } = await supabase
@@ -179,44 +177,3 @@ async function sendInitialEvents(
   }
 }
 
-// Function to broadcast events to connected users
-export function broadcastGameEvent(event: any, affectedUserIds: string[]) {
-  affectedUserIds.forEach(userId => {
-    const controller = connections.get(userId);
-    if (controller) {
-      try {
-        const data = JSON.stringify({
-          type: 'game_event',
-          event: event,
-          timestamp: new Date().toISOString()
-        });
-        
-        controller.enqueue(`data: ${data}\n\n`);
-      } catch (error) {
-        console.error(`Error broadcasting to user ${userId}:`, error);
-        connections.delete(userId);
-      }
-    }
-  });
-}
-
-// Function to broadcast elimination notifications
-export function broadcastElimination(userId: string, teamName: string, week: number) {
-  const controller = connections.get(userId);
-  if (controller) {
-    try {
-      const data = JSON.stringify({
-        type: 'elimination',
-        message: `You have been eliminated! Your pick ${teamName} lost in Week ${week}`,
-        team: teamName,
-        week: week,
-        timestamp: new Date().toISOString()
-      });
-      
-      controller.enqueue(`data: ${data}\n\n`);
-    } catch (error) {
-      console.error(`Error broadcasting elimination to user ${userId}:`, error);
-      connections.delete(userId);
-    }
-  }
-}
