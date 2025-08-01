@@ -138,7 +138,7 @@ function DashboardContentImpl() {
               ) : (
                 <div>
                   {leagues.map((userLeague) => (
-                    <div key={userLeague.league.id} className="notification is-light mb-4">
+                    <div key={userLeague.league.id} className="notification mb-4">
                       <div className="level">
                         <div className="level-left">
                           <div className="level-item">

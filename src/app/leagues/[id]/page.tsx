@@ -434,7 +434,7 @@ function LeagueOverviewContentImpl({ leagueId }: { leagueId: string }) {
                       <div
                         key={member.id}
                         className={`notification ${
-                          member.is_eliminated ? 'is-danger is-light' : 'is-light'
+                          member.is_eliminated ? 'is-danger is-light' : ''
                         } mb-3`}
                       >
                         <div className="level">
@@ -504,7 +504,7 @@ function LeagueOverviewContentImpl({ leagueId }: { leagueId: string }) {
                 ) : (
                   <div>
                     {userPicks.map((pick) => (
-                      <div key={pick.id} className="notification is-primary is-light mb-3">
+                      <div key={pick.id} className="notification is-primary mb-3">
                         <div className="level">
                           <div className="level-left">
                             <div className="level-item">
