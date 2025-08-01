@@ -1,0 +1,7 @@
+# Ignore scripts folder during Vercel deployment
+scripts/
+
+# Ignore other development files
+*.md
+.env.example
+.gitignore
