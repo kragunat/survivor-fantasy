@@ -1,21 +1,40 @@
 import { NextResponse } from 'next/server';
 import { gameSyncService } from '@/lib/game-sync';
+import { getCurrentNFLWeek } from '@/lib/nfl-utils';
 
-// This endpoint will be called by a cron job or manually to sync game data
+// This endpoint will be called by Vercel cron jobs to sync game data
 export async function POST() {
   try {
-    console.log('Starting game data sync...');
+    const startTime = Date.now();
+    console.log('🏈 Starting automated game data sync...');
+    
+    // Check if we're in NFL season
+    const currentWeek = getCurrentNFLWeek();
+    if (currentWeek === 0) {
+      console.log('⏸️ No active NFL season, skipping sync');
+      return NextResponse.json({ 
+        success: true, 
+        message: 'No active NFL season',
+        skipped: true,
+        timestamp: new Date().toISOString()
+      });
+    }
     
     await gameSyncService.syncCurrentWeek();
+    
+    const duration = Date.now() - startTime;
+    console.log(`✅ Game sync completed in ${duration}ms`);
     
     return NextResponse.json({ 
       success: true, 
       message: 'Game data sync completed successfully',
+      week: currentWeek,
+      duration: `${duration}ms`,
       timestamp: new Date().toISOString()
     });
     
   } catch (error) {
-    console.error('Game sync failed:', error);
+    console.error('❌ Game sync failed:', error);
     
     return NextResponse.json(
       { 

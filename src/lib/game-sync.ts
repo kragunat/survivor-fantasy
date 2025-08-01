@@ -6,6 +6,7 @@
 import { createAdminClient } from './supabase/admin';
 import { nflApi, GameEvent } from './nfl-api';
 import { getCurrentNFLWeek } from './nfl-utils';
+import { rateLimiter } from './rate-limiter';
 
 export class GameSyncService {
   private supabase: any = null;
@@ -23,7 +24,13 @@ export class GameSyncService {
    */
   async syncCurrentWeek(): Promise<void> {
     if (this.isRunning) {
-      console.log('Sync already running, skipping...');
+      console.log('⏭️ Sync already running, skipping...');
+      return;
+    }
+
+    // Rate limit ESPN API calls (max 1 per minute)
+    if (!rateLimiter.isAllowed('espn-api-sync', 1, 60000)) {
+      console.log('🚦 Rate limited, skipping sync');
       return;
     }
 
@@ -31,14 +38,15 @@ export class GameSyncService {
     try {
       const currentWeek = getCurrentNFLWeek();
       if (currentWeek === 0) {
-        console.log('No current NFL week, skipping sync');
+        console.log('⏸️ No current NFL week, skipping sync');
         return;
       }
 
-      console.log(`Syncing games for week ${currentWeek}...`);
+      console.log(`🔄 Syncing games for week ${currentWeek}...`);
       await this.syncWeek(currentWeek);
     } catch (error) {
-      console.error('Error syncing current week:', error);
+      console.error('❌ Error syncing current week:', error);
+      throw error; // Re-throw for API endpoint to handle
     } finally {
       this.isRunning = false;
     }
