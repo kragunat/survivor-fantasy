@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "load-games": "tsx scripts/load-nfl-games.ts",
+    "update-teams": "tsx scripts/update-teams.ts",
+    "reset-games": "tsx scripts/reset-games.ts",
+    "load-schedule": "tsx scripts/load-nfl-schedule.ts"
   },
   "keywords": [],
   "author": "",
@@ -30,8 +34,10 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "autoprefixer": "^10.4.21",
+    "dotenv": "^17.2.1",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.11",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   }
 }

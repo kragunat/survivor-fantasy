@@ -485,7 +485,20 @@ function LeagueOverviewContentImpl({ leagueId }: { leagueId: string }) {
             {/* Your Picks */}
             <div className="column">
               <div className="box">
-                <h3 className="title is-5">Your Picks</h3>
+                <div className="level mb-4">
+                  <div className="level-left">
+                    <div className="level-item">
+                      <h3 className="title is-5">Your Picks</h3>
+                    </div>
+                  </div>
+                  <div className="level-right">
+                    <div className="level-item">
+                      <Link href={`/leagues/${league.id}/picks`} className="button is-primary">
+                        Make Picks
+                      </Link>
+                    </div>
+                  </div>
+                </div>
                 {userPicks.length === 0 ? (
                   <p className="has-text-grey has-text-centered">No picks made yet</p>
                 ) : (
