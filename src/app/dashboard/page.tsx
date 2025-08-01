@@ -161,7 +161,7 @@ function DashboardContentImpl() {
                               <p className="subtitle is-6 mb-1">
                                 Season {userLeague.league.season_year} • Commissioner: {userLeague.league.commissioner.name}
                               </p>
-                              <p className="is-size-7 has-text-grey">
+                              <p className="is-size-7 has-text-grey-dark">
                                 Joined {new Date(userLeague.joined_at).toLocaleDateString()}
                               </p>
                             </div>

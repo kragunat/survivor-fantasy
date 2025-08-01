@@ -446,7 +446,7 @@ function LeagueOverviewContentImpl({ leagueId }: { leagueId: string }) {
                                   {member.user_id === session.user?.id && ' (You)'}
                                   {league.commissioner.email === member.profile.email && ' 👑'}
                                 </p>
-                                <p className="is-size-7 has-text-grey">
+                                <p className="is-size-7 has-text-grey-dark">
                                   Joined {new Date(member.joined_at).toLocaleDateString()}
                                 </p>
                               </div>
@@ -510,7 +510,7 @@ function LeagueOverviewContentImpl({ leagueId }: { leagueId: string }) {
                             <div className="level-item">
                               <div>
                                 <p className="has-text-weight-semibold">Week {pick.week}</p>
-                                <p className="is-size-7 has-text-grey">
+                                <p className="is-size-7 has-text-grey-dark">
                                   {new Date(pick.created_at).toLocaleDateString()}
                                 </p>
                               </div>
@@ -520,7 +520,7 @@ function LeagueOverviewContentImpl({ leagueId }: { leagueId: string }) {
                             <div className="level-item">
                               <div className="has-text-right">
                                 <p className="has-text-weight-semibold has-text-primary">{pick.team.abbreviation}</p>
-                                <p className="is-size-7 has-text-grey">{pick.team.name}</p>
+                                <p className="is-size-7 has-text-grey-dark">{pick.team.name}</p>
                               </div>
                             </div>
                           </div>
