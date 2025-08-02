@@ -127,6 +127,27 @@ function DashboardContentImpl() {
           {/* Live Feed */}
           <LiveFeed />
           
+          {/* Test Feed Link (for development) */}
+          <div className="box has-background-info-light">
+            <div className="level">
+              <div className="level-left">
+                <div className="level-item">
+                  <div>
+                    <h4 className="title is-6">🧪 Testing Mode</h4>
+                    <p className="is-size-7">Test the live feed with mock NFL events</p>
+                  </div>
+                </div>
+              </div>
+              <div className="level-right">
+                <div className="level-item">
+                  <Link href="/test-feed" className="button is-info is-small">
+                    Test Live Events
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <div>
             <h3 className="title is-4">Your Leagues</h3>
             <div className="box">
